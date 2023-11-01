@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./AquoAssetERC20v3.sol";
+import "./AquoAssetTransferv3.sol";
 import "./AquoContractListv3.sol";
 
 contract DeployContract {
@@ -15,12 +15,12 @@ contract DeployContract {
         contractList = ContractList(_contractList);
     }
 
-    function deployAndRegisterContract(string memory ipfsAddress, uint256 initialShares) public returns (address) {
+    function deployAndRegisterContract(string memory _ipfsAddress, uint256 _initialShares) public returns (address) {
         // Deploy the Asset contract
-        AssetContract newContract = new AssetContract(ipfsAddress, initialShares, msg.sender);
+        AssetContract newContract = new AssetContract(_initialShares, msg.sender);
         
         // Register the asset in the AssetManager
-        contractList.listContract(address(newContract));
+        contractList.listContract(address(newContract), _ipfsAddress);
 
         // Emit the event
         emit contractDeployed(address(newContract));
@@ -28,3 +28,4 @@ contract DeployContract {
         return address(newContract);
     }
 }
+

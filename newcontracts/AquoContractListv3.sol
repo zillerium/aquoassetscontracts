@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 contract ContractList {
     struct Contract {
         uint256 contractId;
+        string ipfsAddress;
         address contractAddress;
     }
 
@@ -14,12 +15,13 @@ contract ContractList {
     mapping(address => bool) internal contractAddressExists;
     mapping(address => bool) internal unallocatedContracts;  // True if ipfsAddress is null
 
-    function listContract(address _contractAddress) public returns (uint256) {
+    function listContract(address _contractAddress, string memory _ipfsAddress) public returns (uint256) {
         require(!contractAddressExists[_contractAddress], "Contract Address already exists");
 
         uint256 contractId = nextContractId++;
         Contract memory newContract = Contract({
             contractId: contractId,
+            ipfsAddress: _ipfsAddress,
             contractAddress: _contractAddress
         });
         contracts.push(newContract);
@@ -46,3 +48,4 @@ contract ContractList {
         return contracts;
     }
 }
+
