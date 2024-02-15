@@ -13,9 +13,10 @@ contract RWA {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event Transfer(address indexed from, address indexed to, uint amount);
 
-    constructor(uint _rwaCode) {
+    constructor(uint _rwaCode, uint _initialSupply) {
         owner = msg.sender; // The deployer is the initial owner
         rwaCode = _rwaCode; // Set the RWA code for the token
+        mint(owner, _initialSupply); // Mint initial supply to owner
     }
 
     modifier onlyOwner() {
@@ -24,12 +25,10 @@ contract RWA {
     }
 
     // Function to mint tokens
-    function mint(address _to, uint _amount) public onlyOwner {
+    function mint(address _to, uint _amount) internal { // Changed to internal
         require(_to != address(0), "Invalid address");
-        if(balances[_to] == 0) {
-            tokenHolders.push(_to); // Add to tokenHolders if new holder
-        }
         balances[_to] += _amount; // Increase the balance of the recipient
+        tokenHolders.push(_to); // Add to tokenHolders
         emit Minted(_to, _amount, rwaCode);
     }
 
@@ -43,7 +42,14 @@ contract RWA {
         balances[_buyer] += _amount;
 
         // Add buyer to tokenHolders if they are a new holder
-        if(balances[_buyer] == _amount) {
+        bool isTokenHolder = false;
+        for (uint i = 0; i < tokenHolders.length; i++) {
+            if (tokenHolders[i] == _buyer) {
+                isTokenHolder = true;
+                break;
+            }
+        }
+        if (!isTokenHolder) {
             tokenHolders.push(_buyer);
         }
 
