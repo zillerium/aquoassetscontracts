@@ -32,7 +32,7 @@ contract AquoOracle is ChainlinkClient, ConfirmedOwner {
     
         Chainlink.Request memory req = buildOperatorRequest(jobId, this.fulfill.selector);
         
-        string memory baseURL = "https://peacioapi.com:3001/getRwa/";
+        string memory baseURL = "https://peacioapi.com:3002/getRwa/";
         string memory fullURL = string(abi.encodePacked(baseURL, identifier));
 
         // DEFINE THE REQUEST PARAMETERS (example)
@@ -46,7 +46,11 @@ contract AquoOracle is ChainlinkClient, ConfirmedOwner {
         // curl 'https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH&tsyms=USD,EUR' --request 'GET' --header 'content-type: application/json' --header 'set-cookie: sid=14A52'
         
         // PROCESS THE RESULT (example)
-        req.add('path', 'data,rwaPrice,$numberDecimal');
+        //req.add('path', 'rwaPrice.$numberDecimal');
+        req.add('path', 'rwaPrice');
+
+         //       req.add('path', 'data,rwaPrice,$numberDecimal');
+
         req.addInt('multiplier', 10 ** 18);
 
         // Send the request to the Chainlink oracle        
