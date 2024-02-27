@@ -2,12 +2,14 @@
 pragma solidity ^0.8.0;
 
 interface IPOOLToken {
-  function transfer(address to, address rwaContractAddress, uint amount) external;
+    function transfer(uint poolSlot, uint amount) external; // Modified to accept a poolSlot number
+    function transfer(address to, address rwaContractAddress, uint poolSlot, uint amount) external;
 }
 
-contract RWAToken  {
+contract RWAToken {
     address public owner;
-    address public poolAddress; // Added variable to store the pool address
+    address public poolAddress; // Variable to store the pool address
+    uint public poolSlot; // Variable to store the pool slot number associated with this RWA token
 
     mapping(address => uint) public balances;
 
@@ -28,18 +30,19 @@ contract RWAToken  {
         _;
     }
 
-    // Minting function to create tokens and assign them to the contract's address
+    modifier onlyPool() {
+        require(msg.sender == poolAddress, "Only the POOL contract can perform this action");
+        _;
+    }
+
+
     function mint(uint amount) public onlyOwner {
-        // Increase the contract's balance
         balances[address(this)] += amount;
         emit Mint(address(this), amount);
     }
 
-    // Function to transfer tokens from the contract to another address
     function transfer(address to, uint amount) public {
         require(balances[address(this)] >= amount, "Not enough tokens in contract");
-
-        // Transfer the tokens
         balances[address(this)] -= amount;
         balances[to] += amount;
         emit Transfer(address(this), to, amount);
@@ -47,24 +50,25 @@ contract RWAToken  {
 
     function transferFrom(address from, address to, uint amount) public {
         require(balances[from] >= amount, "Insufficient balance");
-      
-
-        // Transfer the tokens
         balances[from] -= amount;
         balances[to] += amount;
-
         emit Transfer(from, to, amount);
     }
 
     function updatePoolAddress(address newPoolAddress) public onlyOwner {
         poolAddress = newPoolAddress;
-     }
+    }
 
+    // Updated to accept a poolSlot number instead of msg.sender
     function swap(uint amount) public {
         require(balances[msg.sender] >= amount, "Insufficient RWA balance");
-        IPOOLToken(poolAddress).transfer(msg.sender, address(this), amount); // Call the transfer function of the POOL contract
-        //balances[msg.sender] -= amount; // Deduct the RWA tokens from the sender's balance
-        emit Transfer(msg.sender, address(this), amount); // Emit a Transfer event for the RWA tokens
+        IPOOLToken(poolAddress).transfer(msg.sender,  address(this), poolSlot, amount); // Modified to use poolSlot
+        emit Transfer(msg.sender, poolAddress, amount); // Emit a Transfer event for the RWA tokens
+    }
+
+    // New function to update the pool slot number
+    function updatePoolSlot(uint newPoolSlot) public onlyPool {
+        poolSlot = newPoolSlot;
     }
 
 }
